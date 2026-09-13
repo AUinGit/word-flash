@@ -511,7 +511,7 @@ select:focus {
   }
 }
 
-/* ===== 学習モーダル内 ===== */
+/* ===== 学習モーダル内: 設定・セッション ===== */
 
 .section-title {
   margin: 0 0 0.4rem;
@@ -530,7 +530,8 @@ select:focus {
 }
 
 #study-setup h3,
-#study-session h3 {
+#study-session h3,
+#study-result h3 {
   font-weight: 600;
 }
 
@@ -688,6 +689,96 @@ select:focus {
   justify-content: flex-end;
 }
 
+/* ===== 結果エリア ===== */
+
+#study-result {
+  margin-top: 0.2rem;
+}
+
+.result-summary-card {
+  border-radius: 10px;
+  background-color: #fafafa;
+  padding: 0.6rem 0.7rem;
+  margin-bottom: 0.6rem;
+}
+
+.result-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.3rem;
+}
+
+.result-summary-row:last-child {
+  margin-bottom: 0;
+}
+
+.result-summary-label {
+  font-size: 0.85rem;
+  color: #555555;
+}
+
+.result-summary-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* 正解・誤答の統計 */
+
+.result-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.result-stat-box {
+  border-radius: 10px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  padding: 0.55rem 0.6rem;
+  text-align: center;
+}
+
+.result-stat-label {
+  font-size: 0.8rem;
+  color: #555555;
+  margin-bottom: 0.25rem;
+}
+
+.result-stat-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.result-stat-number {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.result-stat-rate {
+  font-size: 0.8rem;
+  color: #777777;
+}
+
+/* 結果アクション */
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.result-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
 /* 隠す用 */
 
 .hidden {
@@ -815,5 +906,9 @@ select:focus {
   .deck-table th,
   .deck-table td {
     padding: 0.4rem 0.45rem;
+  }
+
+  .result-stats-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }

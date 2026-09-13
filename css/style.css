@@ -23,6 +23,8 @@ body {
   color: var(--text-color);
 }
 
+/* ヘッダー */
+
 .app-header {
   padding: 0.75rem 1rem;
   background-color: var(--card-bg);
@@ -33,31 +35,11 @@ body {
 }
 
 .app-header h1 {
-  margin: 0 0 0.5rem 0;
+  margin: 0;
   font-size: 1.3rem;
 }
 
-.nav-tabs {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.nav-tab {
-  border: 1px solid var(--border-color);
-  background-color: #fafafa;
-  color: var(--text-color);
-  padding: 0.4rem 0.8rem;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.nav-tab.active {
-  background-color: var(--accent-color);
-  color: #ffffff;
-  border-color: var(--accent-color);
-}
+/* ホーム */
 
 .app-main {
   max-width: 960px;
@@ -65,13 +47,11 @@ body {
   padding: 1rem;
 }
 
-.view {
-  display: none;
+.home-view {
+  /* 現状は常に表示。必要ならここに調整を追加 */
 }
 
-.view.active {
-  display: block;
-}
+/* カード */
 
 .card {
   background-color: var(--card-bg);
@@ -85,6 +65,8 @@ body {
   margin-top: 0;
   font-size: 1.1rem;
 }
+
+/* 入力・セレクト */
 
 input[type="text"],
 select {
@@ -104,6 +86,8 @@ select:focus {
   outline-offset: 1px;
   border-color: transparent;
 }
+
+/* ボタン */
 
 .primary-btn,
 .secondary-btn {
@@ -137,6 +121,8 @@ select:focus {
   cursor: default;
 }
 
+/* ファイル入力ラベル */
+
 .file-input-label {
   display: inline-flex;
   align-items: center;
@@ -153,6 +139,8 @@ select:focus {
 .file-input-label input[type="file"] {
   display: none;
 }
+
+/* メッセージ・ヒント */
 
 .hint {
   font-size: 0.8rem;
@@ -173,6 +161,8 @@ select:focus {
   color: var(--success-color);
 }
 
+/* 単語帳一覧 */
+
 #deck-list {
   display: flex;
   flex-wrap: wrap;
@@ -191,16 +181,148 @@ select:focus {
   background-color: #e0e0e0;
 }
 
-.inline-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: flex-end;
-  margin-bottom: 0.6rem;
+/* フッター */
+
+.app-footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.75rem;
+  color: #777777;
 }
 
-.inline-controls label {
+/* ===== モーダル共通 (背景半透明 + ポップアップ/ボトムシート) ===== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: flex-end; /* デフォルトは下からのボトムシート */
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-backdrop.hidden {
+  display: none;
+}
+
+/* パネル本体 */
+
+.modal-panel {
+  background-color: var(--card-bg);
+  width: 100%;
+  max-width: 640px;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.25);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  opacity: 0;
+  animation: slide-up 0.22s ease-out forwards;
+}
+
+/* PC では中央ポップアップ風にしてもいい */
+@media (min-width: 768px) {
+  .modal-backdrop {
+    align-items: center;
+  }
+
+  .modal-panel {
+    border-radius: 12px;
+    max-height: 80vh;
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.modal-close-btn {
+  border: none;
+  background: none;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #666666;
+}
+
+.modal-body {
+  padding: 0.75rem 1rem 1rem;
+  overflow-y: auto;
+}
+
+/* スライドアニメーション */
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0%);
+    opacity: 1;
+  }
+}
+
+/* 明示用クラス（今は同一だが拡張用） */
+
+.modal-panel-bottom {
+  /* スタイルを差別化したくなったらここに */
+}
+
+/* ===== 学習モーダル内 ===== */
+
+#study-setup h3,
+#study-session h3 {
+  margin-top: 0;
+  font-size: 1rem;
+}
+
+/* 設定テーブル */
+
+.config-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.config-table th,
+.config-table td {
+  padding: 0.4rem 0.3rem;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.config-table th {
+  width: 5.5rem;
+  font-weight: 600;
+  text-align: left;
+  color: #555555;
+}
+
+/* 設定アクション */
+
+.setup-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+/* 学習エリア共通 */
+
+.study-mode {
+  margin-top: 0.5rem;
 }
 
 .question-text {
@@ -227,10 +349,6 @@ select:focus {
   color: var(--error-color);
 }
 
-.study-nav {
-  margin-top: 0.6rem;
-}
-
 .view-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -238,29 +356,43 @@ select:focus {
   margin: 0.5rem 0;
 }
 
+.study-nav {
+  margin-top: 0.6rem;
+}
+
+.session-actions {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 隠す用 */
+
 .hidden {
   display: none;
 }
+
+/* ===== 制作モーダル内 ===== */
 
 .table-wrapper {
   overflow-x: auto;
   margin: 0.5rem 0;
 }
 
-table {
+#editor-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
 }
 
-th,
-td {
+#editor-table th,
+#editor-table td {
   border: 1px solid var(--border-color);
   padding: 0.4rem;
   text-align: left;
 }
 
-th {
+#editor-table th {
   background-color: #fafafa;
 }
 
@@ -293,22 +425,14 @@ th {
   background-color: #e53935;
 }
 
-.app-footer {
-  text-align: center;
-  padding: 1rem;
-  font-size: 0.75rem;
-  color: #777777;
-}
+/* ===== スマホ向け調整 ===== */
 
-/* スマートフォン向け微調整 */
 @media (max-width: 600px) {
-  .inline-controls {
-    flex-direction: column;
-    align-items: stretch;
+  .app-main {
+    padding: 0.75rem;
   }
 
-  .nav-tab {
-    flex: 1 1 auto;
-    justify-content: center;
+  .card {
+    padding: 0.9rem;
   }
 }

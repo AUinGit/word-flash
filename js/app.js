@@ -86,31 +86,57 @@ function handleImportCsv() {
 }
 
 function renderDeckList() {
-  const listEl = document.getElementById("deck-list");
-  listEl.innerHTML = "";
+  const tbody = document.getElementById("deck-list");
+  const badge = document.getElementById("deck-count-badge");
+  tbody.innerHTML = "";
 
   if (decks.length === 0) {
-    listEl.textContent = "保存されている単語帳はまだありません。";
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 3;
+    td.textContent = "保存されている単語帳はまだありません。";
+    td.style.textAlign = "center";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    if (badge) badge.textContent = "0件";
     return;
   }
 
+  if (badge) badge.textContent = `${decks.length}件`;
+
   decks.forEach((deck) => {
-    const pill = document.createElement("div");
-    pill.className = "deck-pill";
-    pill.textContent = `${deck.name} (${deck.items.length})`;
-    pill.addEventListener("click", () => {
-      // 学習モーダルを開いて、このデッキを選択状態にする
+    const tr = document.createElement("tr");
+
+    const nameTd = document.createElement("td");
+    nameTd.className = "deck-name-cell col-name";
+    nameTd.textContent = deck.name;
+
+    const countTd = document.createElement("td");
+    countTd.className = "col-count";
+    countTd.textContent = deck.items.length;
+
+    const actionTd = document.createElement("td");
+    actionTd.className = "col-action";
+    const btn = document.createElement("button");
+    btn.className = "primary-btn";
+    btn.textContent = "学習";
+    btn.addEventListener("click", () => {
       openModal("study-modal");
       populateStudyDeckSelect(deck.id);
       isStudyStarted = false;
       showStudySetup();
     });
-    listEl.appendChild(pill);
+    actionTd.appendChild(btn);
+
+    tr.appendChild(nameTd);
+    tr.appendChild(countTd);
+    tr.appendChild(actionTd);
+    tbody.appendChild(tr);
   });
 }
 
 /* ======================
- * モーダル制御（アニメーションあり）
+ * モーダル制御（アニメーション + 背景クリックで閉じる）
  * ====================== */
 
 function openModal(id) {
@@ -119,7 +145,7 @@ function openModal(id) {
 
   const panel = modal.querySelector(".modal-panel-bottom");
 
-  // いったん hidden を外して表示可能に
+  // hidden を外して表示可能に
   modal.classList.remove("hidden");
 
   // 開くときのクラス設定
@@ -131,8 +157,15 @@ function openModal(id) {
     panel.classList.remove("is-closing");
   }
 
-  // PC/スマホ共通で backdrop のフェードインを発火
-  // （CSS側で .is-opening にアニメが紐づいている）
+  // 背景クリックで閉じる（パネル内クリックは無視）
+  const backdropClickHandler = (event) => {
+    if (event.target === modal) {
+      closeModal(id);
+    }
+  };
+  // すでに付いていると二重になるので、一度消してから付け直し
+  modal.removeEventListener("click", backdropClickHandler);
+  modal.addEventListener("click", backdropClickHandler);
 }
 
 function closeModal(id) {
@@ -141,7 +174,6 @@ function closeModal(id) {
 
   const panel = modal.querySelector(".modal-panel-bottom");
 
-  // 開いている状態から閉じるアニメーションへ
   modal.classList.remove("is-opening");
   modal.classList.add("is-closing");
 
@@ -150,7 +182,6 @@ function closeModal(id) {
     panel.classList.add("is-closing");
   }
 
-  // アニメーション終了後に hidden を付与して完全非表示に
   const handleAnimationEnd = (event) => {
     // バックドロップ自身のアニメーション終了を待つ
     if (event.target !== modal) return;
@@ -204,7 +235,6 @@ function initStudy() {
   const directionSelect = document.getElementById("direction-select");
   const modeSelect = document.getElementById("mode-select");
 
-  // セレクト変更で現在の設定を更新
   deckSelect.addEventListener("change", () => {
     const deckId = deckSelect.value;
     currentStudyDeck = decks.find((d) => d.id === deckId) || null;
@@ -219,7 +249,6 @@ function initStudy() {
     updateStudyModeUI();
   });
 
-  // 「この設定で開始」
   document.getElementById("study-start-btn").addEventListener("click", () => {
     const statusEl = document.getElementById("study-setup-status");
     statusEl.textContent = "";
@@ -236,13 +265,11 @@ function initStudy() {
     showStudySession();
   });
 
-  // 設定に戻る
   document.getElementById("study-back-to-setup-btn").addEventListener("click", () => {
     isStudyStarted = false;
     showStudySetup();
   });
 
-  // 閉じるボタン
   document.getElementById("study-close-btn").addEventListener("click", () => {
     closeModal("study-modal");
     isStudyStarted = false;
@@ -275,7 +302,6 @@ function initStudy() {
   });
   document.getElementById("view-next-btn").addEventListener("click", nextQuestion);
 
-  // 初期状態
   populateStudyDeckSelect();
   updateStudyModeUI();
   updateStudyProgress();
@@ -335,14 +361,12 @@ function resetStudyIndex() {
 }
 
 function clearStudyMessages() {
-  // 記述
   const inputResult = document.getElementById("input-result");
   inputResult.textContent = "";
   inputResult.className = "result-text";
   const ansInput = document.getElementById("input-answer");
   if (ansInput) ansInput.value = "";
 
-  // 閲覧
   const viewResult = document.getElementById("view-result");
   viewResult.textContent = "";
   viewResult.className = "result-text";
@@ -435,7 +459,7 @@ function nextQuestion() {
 
   currentStudyIndex++;
   if (currentStudyIndex >= currentStudyDeck.items.length) {
-    currentStudyIndex = 0; // ループさせる
+    currentStudyIndex = 0;
   }
   clearStudyMessages();
   loadCurrentQuestion();
@@ -461,7 +485,6 @@ function initEditor() {
   const downloadCsvBtn = document.getElementById("download-csv-btn");
   const editorCloseBtn = document.getElementById("editor-close-btn");
 
-  // PointerEventが引数に入らないようにラッパーで呼ぶ
   addRowBtn.addEventListener("click", () => addEditorRow());
   saveDeckBtn.addEventListener("click", handleSaveDeckFromEditor);
   downloadCsvBtn.addEventListener("click", handleDownloadCsvFromEditor);
@@ -470,7 +493,6 @@ function initEditor() {
     closeModal("editor-modal");
   });
 
-  // 初期行を1つだけ追加
   addEditorRow();
 }
 
@@ -479,6 +501,7 @@ function addEditorRow(leftValue = "", rightValue = "") {
   const tr = document.createElement("tr");
 
   const tdLeft = document.createElement("td");
+  tdLeft.className = "center-cell";
   const inputLeft = document.createElement("input");
   inputLeft.type = "text";
   inputLeft.className = "editor-row-input";
@@ -486,6 +509,7 @@ function addEditorRow(leftValue = "", rightValue = "") {
   tdLeft.appendChild(inputLeft);
 
   const tdRight = document.createElement("td");
+  tdRight.className = "center-cell";
   const inputRight = document.createElement("input");
   inputRight.type = "text";
   inputRight.className = "editor-row-input";
@@ -493,6 +517,7 @@ function addEditorRow(leftValue = "", rightValue = "") {
   tdRight.appendChild(inputRight);
 
   const tdOp = document.createElement("td");
+  tdOp.className = "center-cell";
   const delBtn = document.createElement("button");
   delBtn.textContent = "削除";
   delBtn.className = "delete-row-btn";
@@ -559,7 +584,6 @@ function handleSaveDeckFromEditor() {
   statusEl.textContent = "単語帳を保存しました。";
   statusEl.classList.add("success");
 
-  // エディタをクリア
   nameInput.value = "";
   const tbody = document.getElementById("editor-tbody");
   tbody.innerHTML = "";
@@ -576,11 +600,9 @@ function handleDownloadCsvFromEditor() {
     return;
   }
 
-  const csv = rows.map((row) => {
-    return row
-      .map((cell) => escapeCsvCell(cell))
-      .join(",");
-  }).join("\n");
+  const csv = rows
+    .map((row) => row.map((cell) => escapeCsvCell(cell)).join(","))
+    .join("\n");
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);

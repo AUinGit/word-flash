@@ -48,7 +48,6 @@ body {
 }
 
 .home-view {
-  /* 現状は常に表示。必要ならここに調整を追加 */
 }
 
 /* カード */
@@ -190,20 +189,50 @@ select:focus {
   color: #777777;
 }
 
-/* ===== モーダル共通 (背景半透明 + ポップアップ/ボトムシート) ===== */
+/* ======================
+   モーダル共通
+   - スマホ: 下からスライド (open/close 両方)
+   - PC: フェード (open/close 両方)
+   ====================== */
 
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.35);
-  display: flex;
-  align-items: flex-end; /* デフォルトは下からのボトムシート */
+  display: none;
+  align-items: flex-end; /* デフォルト: ボトムシート */
   justify-content: center;
   z-index: 100;
+  background-color: rgba(0, 0, 0, 0); /* フェード用: 初期は透明 */
 }
 
 .modal-backdrop.hidden {
   display: none;
+}
+
+/* JS で .is-open を付けたときだけ表示＋アニメ開始 */
+
+.modal-backdrop.is-open {
+  display: flex;
+}
+
+/* バックドロップのフェード（PC向け）。スマホでも「暗くなる」感が出る */
+
+@keyframes backdrop-fade-in {
+  from {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0.35);
+  }
+}
+
+@keyframes backdrop-fade-out {
+  from {
+    background-color: rgba(0, 0, 0, 0.35);
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0);
+  }
 }
 
 /* パネル本体 */
@@ -214,15 +243,14 @@ select:focus {
   max-width: 640px;
   border-radius: 12px 12px 0 0;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.25);
-  max-height: 90vh;
+  max-height: 92vh; /* 占有率を少し高める */
   display: flex;
   flex-direction: column;
-  transform: translateY(100%);
-  opacity: 0;
-  animation: slide-up 0.22s ease-out forwards;
+  /* アニメーションの初期状態は JS 側でクラス管理 */
 }
 
-/* PC では中央ポップアップ風にしてもいい */
+/* PC では中央寄せポップアップに */
+
 @media (min-width: 768px) {
   .modal-backdrop {
     align-items: center;
@@ -233,6 +261,8 @@ select:focus {
     max-height: 80vh;
   }
 }
+
+/* ヘッダー */
 
 .modal-header {
   display: flex;
@@ -256,17 +286,19 @@ select:focus {
   color: #666666;
 }
 
+/* 本文 */
+
 .modal-body {
   padding: 0.75rem 1rem 1rem;
   overflow-y: auto;
 }
 
-/* スライドアニメーション */
+/* ===== スマホ向け: 下からスライドアニメーション ===== */
 
-@keyframes slide-up {
+@keyframes panel-slide-in-up {
   from {
     transform: translateY(100%);
-    opacity: 0;
+    opacity: 1;
   }
   to {
     transform: translateY(0%);
@@ -274,10 +306,87 @@ select:focus {
   }
 }
 
-/* 明示用クラス（今は同一だが拡張用） */
+@keyframes panel-slide-out-down {
+  from {
+    transform: translateY(0%);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 1;
+  }
+}
 
-.modal-panel-bottom {
-  /* スタイルを差別化したくなったらここに */
+/* ===== PC向け: フェードイン / フェードアウト ===== */
+
+@keyframes panel-fade-in {
+  from {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes panel-fade-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+
+/* 開くとき */
+
+.modal-backdrop.is-opening {
+  animation: backdrop-fade-in 0.22s ease-out forwards;
+}
+
+/* 閉じるとき */
+
+.modal-backdrop.is-closing {
+  animation: backdrop-fade-out 0.18s ease-in forwards;
+}
+
+/* モバイルサイズ: スライドイン/アウト */
+
+@media (max-width: 767px) {
+  .modal-panel-bottom {
+    animation-duration: 0.22s;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+  }
+
+  .modal-panel-bottom.is-opening {
+    animation-name: panel-slide-in-up;
+  }
+
+  .modal-panel-bottom.is-closing {
+    animation-name: panel-slide-out-down;
+  }
+}
+
+/* PCサイズ: フェードイン/アウト */
+
+@media (min-width: 768px) {
+  .modal-panel-bottom {
+    animation-duration: 0.22s;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+  }
+
+  .modal-panel-bottom.is-opening {
+    animation-name: panel-fade-in;
+  }
+
+  .modal-panel-bottom.is-closing {
+    animation-name: panel-fade-out;
+  }
 }
 
 /* ===== 学習モーダル内 ===== */
@@ -369,7 +478,7 @@ select:focus {
 /* 隠す用 */
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 /* ===== 制作モーダル内 ===== */
@@ -434,5 +543,9 @@ select:focus {
 
   .card {
     padding: 0.9rem;
+  }
+
+  .modal-panel {
+    max-height: 94vh; /* さらに少し上まで使う */
   }
 }

@@ -9,95 +9,28 @@ let currentStudyDeck = null;
 let currentStudyIndex = 0;
 let currentDirection = "forward"; // "forward" | "reverse"
 let currentMode = "input";        // "input" | "view"
+let isStudyStarted = false;       // 設定完了後に true
 
 document.addEventListener("DOMContentLoaded", () => {
-  initViews();
   loadDecksFromStorage();
   renderDeckList();
-  populateStudyDeckSelect();
   initHome();
   initStudy();
   initEditor();
 });
 
 /* ======================
- * ビュー切り替え
- * ====================== */
-
-function initViews() {
-  const tabs = document.querySelectorAll(".nav-tab");
-  const views = document.querySelectorAll(".view");
-
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const target = tab.dataset.view;
-
-      tabs.forEach((t) => t.classList.remove("active"));
-      views.forEach((v) => v.classList.remove("active"));
-
-      tab.classList.add("active");
-      document.getElementById(target).classList.add("active");
-    });
-  });
-
-  // ホームから制作ページへ
-  document.getElementById("go-editor-btn").addEventListener("click", () => {
-    switchView("editor-view");
-  });
-}
-
-function switchView(viewId) {
-  const tabs = document.querySelectorAll(".nav-tab");
-  const views = document.querySelectorAll(".view");
-
-  views.forEach((v) => v.classList.remove("active"));
-  document.getElementById(viewId).classList.add("active");
-
-  tabs.forEach((tab) => {
-    if (tab.dataset.view === viewId) {
-      tab.classList.add("active");
-    } else {
-      tab.classList.remove("active");
-    }
-  });
-}
-
-/* ======================
- * ローカルストレージ
- * ====================== */
-
-function loadDecksFromStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      decks = [];
-      return;
-    }
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      decks = parsed;
-    } else {
-      decks = [];
-    }
-  } catch (e) {
-    console.error("Failed to load decks", e);
-    decks = [];
-  }
-}
-
-function saveDecksToStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(decks));
-}
-
-/* ======================
- * ホーム（CSVインポート・一覧）
+ * ホーム
  * ====================== */
 
 function initHome() {
   const importBtn = document.getElementById("import-csv-btn");
   importBtn.addEventListener("click", handleImportCsv);
 
-  renderDeckList();
+  const openEditorBtn = document.getElementById("open-editor-btn");
+  openEditorBtn.addEventListener("click", () => {
+    openModal("editor-modal");
+  });
 }
 
 function handleImportCsv() {
@@ -166,17 +99,61 @@ function renderDeckList() {
     pill.className = "deck-pill";
     pill.textContent = `${deck.name} (${deck.items.length})`;
     pill.addEventListener("click", () => {
-      switchView("study-view");
-      const select = document.getElementById("study-deck-select");
-      select.value = deck.id;
-      onStudyDeckChange();
+      // 学習モーダルを開いて、このデッキを選択状態にする
+      openModal("study-modal");
+      populateStudyDeckSelect(deck.id);
+      isStudyStarted = false;
+      showStudySetup();
     });
     listEl.appendChild(pill);
   });
 }
 
 /* ======================
- * 学習ビュー
+ * モーダル制御
+ * ====================== */
+
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.remove("hidden");
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.add("hidden");
+}
+
+/* ======================
+ * ローカルストレージ
+ * ====================== */
+
+function loadDecksFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      decks = [];
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      decks = parsed;
+    } else {
+      decks = [];
+    }
+  } catch (e) {
+    console.error("Failed to load decks", e);
+    decks = [];
+  }
+}
+
+function saveDecksToStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(decks));
+}
+
+/* ======================
+ * 学習モーダル
  * ====================== */
 
 function initStudy() {
@@ -184,14 +161,49 @@ function initStudy() {
   const directionSelect = document.getElementById("direction-select");
   const modeSelect = document.getElementById("mode-select");
 
-  deckSelect.addEventListener("change", onStudyDeckChange);
+  // セレクトの変更自体は「次回開始時の設定」として保持
+  deckSelect.addEventListener("change", () => {
+    const deckId = deckSelect.value;
+    currentStudyDeck = decks.find((d) => d.id === deckId) || null;
+  });
+
   directionSelect.addEventListener("change", () => {
     currentDirection = directionSelect.value;
-    resetStudyIndex();
   });
+
   modeSelect.addEventListener("change", () => {
     currentMode = modeSelect.value;
     updateStudyModeUI();
+  });
+
+  // 「この設定で開始」
+  document.getElementById("study-start-btn").addEventListener("click", () => {
+    const statusEl = document.getElementById("study-setup-status");
+    statusEl.textContent = "";
+    statusEl.className = "status-message";
+
+    if (!currentStudyDeck || currentStudyDeck.items.length === 0) {
+      statusEl.textContent = "有効な単語帳が選択されていません。";
+      statusEl.classList.add("error");
+      return;
+    }
+
+    isStudyStarted = true;
+    resetStudyIndex();
+    showStudySession();
+  });
+
+  // 設定に戻る
+  document.getElementById("study-back-to-setup-btn").addEventListener("click", () => {
+    isStudyStarted = false;
+    showStudySetup();
+  });
+
+  // 閉じるボタン
+  document.getElementById("study-close-btn").addEventListener("click", () => {
+    closeModal("study-modal");
+    isStudyStarted = false;
+    showStudySetup();
   });
 
   // 記述モード
@@ -222,13 +234,16 @@ function initStudy() {
   });
   document.getElementById("view-next-btn").addEventListener("click", nextQuestion);
 
+  // 初期状態
+  populateStudyDeckSelect();
   updateStudyModeUI();
   updateStudyProgress();
+  showStudySetup();
 }
 
-function populateStudyDeckSelect() {
+function populateStudyDeckSelect(preferId = null) {
   const select = document.getElementById("study-deck-select");
-  const prevValue = select.value;
+  const prevValue = preferId || select.value;
   select.innerHTML = "";
 
   if (decks.length === 0) {
@@ -237,7 +252,6 @@ function populateStudyDeckSelect() {
     opt.textContent = "単語帳がありません";
     select.appendChild(opt);
     currentStudyDeck = null;
-    updateStudyAreaDisabled(true);
     return;
   }
 
@@ -256,29 +270,20 @@ function populateStudyDeckSelect() {
     select.value = decks[0].id;
     currentStudyDeck = decks[0];
   }
-
-  updateStudyAreaDisabled(false);
-  resetStudyIndex();
 }
 
-function updateStudyAreaDisabled(disabled) {
-  const controls = document.querySelectorAll("#study-view select, #study-view button, #study-view input");
-  controls.forEach((el) => {
-    if (el.id === "study-deck-select") return;
-    el.disabled = disabled;
-  });
-  if (disabled) {
-    document.getElementById("study-progress").textContent = "利用可能な単語帳がありません。";
-  } else {
-    updateStudyProgress();
-  }
+function showStudySetup() {
+  const setup = document.getElementById("study-setup");
+  const session = document.getElementById("study-session");
+  setup.classList.remove("hidden");
+  session.classList.add("hidden");
 }
 
-function onStudyDeckChange() {
-  const select = document.getElementById("study-deck-select");
-  const deckId = select.value;
-  currentStudyDeck = decks.find((d) => d.id === deckId) || null;
-  resetStudyIndex();
+function showStudySession() {
+  const setup = document.getElementById("study-setup");
+  const session = document.getElementById("study-session");
+  setup.classList.add("hidden");
+  session.classList.remove("hidden");
 }
 
 function resetStudyIndex() {
@@ -293,14 +298,17 @@ function clearStudyMessages() {
   const inputResult = document.getElementById("input-result");
   inputResult.textContent = "";
   inputResult.className = "result-text";
-  document.getElementById("input-answer").value = "";
+  const ansInput = document.getElementById("input-answer");
+  if (ansInput) ansInput.value = "";
 
   // 閲覧
   const viewResult = document.getElementById("view-result");
   viewResult.textContent = "";
   viewResult.className = "result-text";
-  document.getElementById("view-answer-area").classList.add("hidden");
-  document.getElementById("view-answer").textContent = "";
+  const answerArea = document.getElementById("view-answer-area");
+  if (answerArea) answerArea.classList.add("hidden");
+  const answerEl = document.getElementById("view-answer");
+  if (answerEl) answerEl.textContent = "";
 }
 
 function updateStudyModeUI() {
@@ -315,8 +323,10 @@ function updateStudyModeUI() {
     viewModeEl.style.display = "block";
   }
 
-  clearStudyMessages();
-  loadCurrentQuestion();
+  if (isStudyStarted) {
+    clearStudyMessages();
+    loadCurrentQuestion();
+  }
 }
 
 function loadCurrentQuestion() {
@@ -344,6 +354,7 @@ function loadCurrentQuestion() {
 }
 
 function handleInputSubmit() {
+  if (!isStudyStarted) return;
   if (!currentStudyDeck || currentStudyDeck.items.length === 0) return;
 
   const userInput = document.getElementById("input-answer").value.trim();
@@ -364,6 +375,7 @@ function handleInputSubmit() {
 }
 
 function showViewAnswer() {
+  if (!isStudyStarted) return;
   if (!currentStudyDeck || currentStudyDeck.items.length === 0) return;
 
   const [left, right] = currentStudyDeck.items[currentStudyIndex];
@@ -377,6 +389,7 @@ function showViewAnswer() {
 }
 
 function nextQuestion() {
+  if (!isStudyStarted) return;
   if (!currentStudyDeck || currentStudyDeck.items.length === 0) return;
 
   currentStudyIndex++;
@@ -390,7 +403,7 @@ function nextQuestion() {
 
 function updateStudyProgress() {
   const progressEl = document.getElementById("study-progress");
-  if (!currentStudyDeck || currentStudyDeck.items.length === 0) {
+  if (!currentStudyDeck || currentStudyDeck.items.length === 0 || !isStudyStarted) {
     progressEl.textContent = "";
     return;
   }
@@ -398,17 +411,23 @@ function updateStudyProgress() {
 }
 
 /* ======================
- * 制作ビュー
+ * 制作モーダル
  * ====================== */
 
 function initEditor() {
   const addRowBtn = document.getElementById("add-row-btn");
   const saveDeckBtn = document.getElementById("save-deck-btn");
   const downloadCsvBtn = document.getElementById("download-csv-btn");
+  const editorCloseBtn = document.getElementById("editor-close-btn");
 
-  addRowBtn.addEventListener("click", addEditorRow);
+  // PointerEventが引数に入らないようにラッパーで呼ぶ
+  addRowBtn.addEventListener("click", () => addEditorRow());
   saveDeckBtn.addEventListener("click", handleSaveDeckFromEditor);
   downloadCsvBtn.addEventListener("click", handleDownloadCsvFromEditor);
+
+  editorCloseBtn.addEventListener("click", () => {
+    closeModal("editor-modal");
+  });
 
   // 初期行を1つだけ追加
   addEditorRow();
@@ -508,8 +527,9 @@ function handleSaveDeckFromEditor() {
 
 function handleDownloadCsvFromEditor() {
   const rows = getEditorRows();
+  const statusEl = document.getElementById("editor-status");
+
   if (rows.length === 0) {
-    const statusEl = document.getElementById("editor-status");
     statusEl.textContent = "CSVに書き出す行がありません。";
     statusEl.className = "status-message error";
     return;
@@ -535,13 +555,15 @@ function handleDownloadCsvFromEditor() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+
+  statusEl.textContent = "CSVをダウンロードしました。";
+  statusEl.className = "status-message success";
 }
 
 /* ======================
  * CSVユーティリティ
  * ====================== */
 
-// 単純な 2 列 CSV パーサー（カンマ区切り・改行区切り）
 function parseCsv(text) {
   const lines = text.split(/\r?\n/);
   const items = [];
@@ -550,7 +572,6 @@ function parseCsv(text) {
     line = line.trim();
     if (!line) continue;
 
-    // 簡易処理: ダブルクオート対応だが厳密ではない
     const cells = splitCsvLine(line);
     if (cells.length < 2) continue;
 
@@ -564,7 +585,7 @@ function parseCsv(text) {
   return items;
 }
 
-// 1 行をカンマで区切る（クオート対応の簡易版）
+// 1行をカンマで区切る（簡易クオート対応）
 function splitCsvLine(line) {
   const result = [];
   let current = "";
@@ -575,7 +596,6 @@ function splitCsvLine(line) {
 
     if (ch === '"') {
       if (inQuotes && line[i + 1] === '"') {
-        // 連続する "" はエスケープされた "
         current += '"';
         i++;
       } else {
@@ -592,7 +612,6 @@ function splitCsvLine(line) {
   return result;
 }
 
-// CSVセルのエスケープ
 function escapeCsvCell(cell) {
   if (cell == null) return "";
   const str = String(cell);

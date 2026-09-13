@@ -314,8 +314,6 @@ select:focus {
 
 /* ======================
    モーダル共通
-   - スマホ: 下からスライド
-   - PC: フェード + 背景ぼかし
    ====================== */
 
 .modal-backdrop {
@@ -325,9 +323,9 @@ select:focus {
   align-items: flex-end; /* デフォルト: ボトムシート */
   justify-content: center;
   z-index: 100;
-  background-color: rgba(0, 0, 0, 0);
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
+  background-color: rgba(0, 0, 0, 0); /* アニメの from 位置 */
+  backdrop-filter: blur(6px);          /* 常時ぼかしを有効化 */
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .modal-backdrop.hidden {
@@ -340,27 +338,23 @@ select:focus {
   display: flex;
 }
 
-/* バックドロップのフェード + ぼかし（PC中心だが共通で適用） */
+/* バックドロップのフェード（ぼかしは固定） */
 
 @keyframes backdrop-fade-in {
   from {
     background-color: rgba(0, 0, 0, 0);
-    backdrop-filter: blur(0px);
   }
   to {
     background-color: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(6px);
   }
 }
 
 @keyframes backdrop-fade-out {
   from {
     background-color: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(6px);
   }
   to {
     background-color: rgba(0, 0, 0, 0);
-    backdrop-filter: blur(0px);
   }
 }
 

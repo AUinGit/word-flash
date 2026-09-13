@@ -80,7 +80,7 @@
     <small>&copy; 単語帳アプリ</small>
   </footer>
 
-  <!-- 学習モーダル（ステージ選択 → 学習 → 結果） -->
+  <!-- 学習モーダル（設定 → 学習 → 結果） -->
   <div id="study-modal" class="modal-backdrop hidden">
     <div class="modal-panel modal-panel-bottom">
       <header class="modal-header">
@@ -144,11 +144,18 @@
               </div>
               <div class="answer-box">
                 <label class="answer-label" for="input-answer">解答</label>
-                <input type="text" id="input-answer" placeholder="ここに解答を入力">
+                <input
+                  type="text"
+                  id="input-answer"
+                  placeholder="ここに解答を入力"
+                  autocomplete="off"
+                >
               </div>
               <div class="study-controls-row">
-                <button id="input-submit-btn" class="primary-btn">答え合わせ</button>
-                <button id="input-next-btn" class="secondary-btn">次の問題へ</button>
+                <!-- 「次の問題へ」は統合 → 判定ボタンだけ。5秒後自動で次へ進む -->
+                <button id="input-submit-btn" class="primary-btn">
+                  答え合わせ（5秒後に次の問題へ）
+                </button>
               </div>
               <p id="input-result" class="result-text"></p>
             </div>
@@ -161,8 +168,13 @@
               </div>
 
               <div class="view-choice-row">
-                <button id="view-know-btn" class="primary-btn">わかる</button>
-                <button id="view-dont-know-btn" class="secondary-btn">わからない</button>
+                <!-- ここも「次へ」ボタンは無し。わかる/わからない後、5秒後に自動で次へ -->
+                <button id="view-know-btn" class="primary-btn">
+                  わかる（5秒後に次の問題へ）
+                </button>
+                <button id="view-dont-know-btn" class="secondary-btn">
+                  わからない（5秒後に次の問題へ）
+                </button>
               </div>
 
               <div id="view-answer-area" class="answer-reveal hidden">
@@ -176,9 +188,6 @@
                   <button id="view-wrong-btn" class="secondary-btn">合っていない</button>
                 </div>
                 <p id="view-result" class="result-text"></p>
-                <div class="study-controls-row">
-                  <button id="view-next-btn" class="secondary-btn">次の問題へ</button>
-                </div>
               </div>
             </div>
           </div>
@@ -193,41 +202,43 @@
           <h3 class="section-title">結果</h3>
 
           <div class="result-summary-card">
-            <div class="result-summary-row">
-              <div class="result-summary-label">学習時間</div>
-              <div class="result-summary-value" id="result-time">--:--</div>
+            <div class="result-row">
+              <span class="result-label">所要時間</span>
+              <span id="result-time" class="result-value">-</span>
             </div>
-            <div class="result-summary-row">
-              <div class="result-summary-label">問題数</div>
-              <div class="result-summary-value" id="result-total">0 問</div>
-            </div>
-          </div>
-
-          <div class="result-stats-grid">
-            <div class="result-stat-box">
-              <div class="result-stat-label">正解</div>
-              <div class="result-stat-main">
-                <span id="result-correct-count" class="result-stat-number">0</span>
-                <span id="result-correct-rate" class="result-stat-rate">0%</span>
+            <div class="result-grid">
+              <div class="result-item">
+                <div class="result-item-label">総問題数</div>
+                <div id="result-total" class="result-item-value">0</div>
               </div>
-            </div>
-            <div class="result-stat-box">
-              <div class="result-stat-label">誤答</div>
-              <div class="result-stat-main">
-                <span id="result-wrong-count" class="result-stat-number">0</span>
-                <span id="result-wrong-rate" class="result-stat-rate">0%</span>
+              <div class="result-item">
+                <div class="result-item-label">正解数</div>
+                <div id="result-correct" class="result-item-value">0</div>
+              </div>
+              <div class="result-item">
+                <div class="result-item-label">誤答数</div>
+                <div id="result-wrong" class="result-item-value">0</div>
+              </div>
+              <div class="result-item">
+                <div class="result-item-label">正答率</div>
+                <div id="result-rate" class="result-item-value">0%</div>
               </div>
             </div>
           </div>
 
           <div class="result-actions">
-            <button id="result-retry-wrong-btn" class="primary-btn">誤答のみやり直し</button>
-            <button id="result-retry-all-btn" class="secondary-btn">全てやり直し</button>
+            <button id="result-retry-wrong" class="primary-btn">
+              誤答した問題だけやり直す
+            </button>
+            <button id="result-retry-all" class="secondary-btn">
+              全てもう一度やる
+            </button>
           </div>
 
-          <div class="result-footer-actions">
-            <button id="result-back-to-setup-btn" class="secondary-btn">設定に戻る</button>
-            <button id="result-close-btn" class="secondary-btn">閉じる</button>
+          <div class="result-footer">
+            <button id="result-back-to-setup" class="secondary-btn">
+              設定に戻る
+            </button>
           </div>
         </section>
       </div>

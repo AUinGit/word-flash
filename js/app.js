@@ -110,19 +110,62 @@ function renderDeckList() {
 }
 
 /* ======================
- * モーダル制御
+ * モーダル制御（アニメーションあり）
  * ====================== */
 
 function openModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
+
+  const panel = modal.querySelector(".modal-panel-bottom");
+
+  // いったん hidden を外して表示可能に
   modal.classList.remove("hidden");
+
+  // 開くときのクラス設定
+  modal.classList.add("is-open", "is-opening");
+  modal.classList.remove("is-closing");
+
+  if (panel) {
+    panel.classList.add("is-opening");
+    panel.classList.remove("is-closing");
+  }
+
+  // PC/スマホ共通で backdrop のフェードインを発火
+  // （CSS側で .is-opening にアニメが紐づいている）
 }
 
 function closeModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
-  modal.classList.add("hidden");
+
+  const panel = modal.querySelector(".modal-panel-bottom");
+
+  // 開いている状態から閉じるアニメーションへ
+  modal.classList.remove("is-opening");
+  modal.classList.add("is-closing");
+
+  if (panel) {
+    panel.classList.remove("is-opening");
+    panel.classList.add("is-closing");
+  }
+
+  // アニメーション終了後に hidden を付与して完全非表示に
+  const handleAnimationEnd = (event) => {
+    // バックドロップ自身のアニメーション終了を待つ
+    if (event.target !== modal) return;
+
+    modal.classList.add("hidden");
+    modal.classList.remove("is-open", "is-closing", "is-opening");
+
+    if (panel) {
+      panel.classList.remove("is-closing", "is-opening");
+    }
+
+    modal.removeEventListener("animationend", handleAnimationEnd);
+  };
+
+  modal.addEventListener("animationend", handleAnimationEnd, { once: true });
 }
 
 /* ======================
@@ -161,7 +204,7 @@ function initStudy() {
   const directionSelect = document.getElementById("direction-select");
   const modeSelect = document.getElementById("mode-select");
 
-  // セレクトの変更自体は「次回開始時の設定」として保持
+  // セレクト変更で現在の設定を更新
   deckSelect.addEventListener("change", () => {
     const deckId = deckSelect.value;
     currentStudyDeck = decks.find((d) => d.id === deckId) || null;
@@ -212,11 +255,9 @@ function initStudy() {
 
   // 閲覧モード
   document.getElementById("view-know-btn").addEventListener("click", () => {
-    // わかる → 解答を表示して自己判定
     showViewAnswer();
   });
   document.getElementById("view-dont-know-btn").addEventListener("click", () => {
-    // わからない → 誤り扱い
     const resultEl = document.getElementById("view-result");
     resultEl.textContent = "わからない → 誤りとして記録します。";
     resultEl.className = "result-text wrong";

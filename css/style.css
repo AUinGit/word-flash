@@ -32,6 +32,8 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .app-header h1 {
@@ -42,27 +44,98 @@ body {
 /* ホーム */
 
 .app-main {
-  max-width: 960px;
+  max-width: 980px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 1.2rem 1rem 2rem;
 }
 
 .home-view {
 }
 
-/* カード */
+/* カードレイアウト */
 
 .card {
-  background-color: var(--card-bg);
-  border-radius: 8px;
-  padding: 1rem;
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+  border-radius: 14px;
+  padding: 1.1rem 1.2rem;
   margin-bottom: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 6px 18px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.03);
 }
 
-.card h2 {
-  margin-top: 0;
+.card-home {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.card-home h2 {
+  margin: 0;
   font-size: 1.1rem;
+}
+
+.card-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555555;
+}
+
+.card-home-split {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.card-home-split-left {
+  flex: 1 1 auto;
+}
+
+.card-home-split-right {
+  flex: 0 0 180px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 行レイアウト */
+
+.home-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.home-row-actions {
+  justify-content: flex-end;
+}
+
+/* インライン入力 */
+
+.input-inline {
+  flex: 1 1 180px;
+}
+
+/* 見出し行（バッジ付き） */
+
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.2rem;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  background-color: rgba(41, 121, 255, 0.08);
+  color: var(--accent-color);
 }
 
 /* 入力・セレクト */
@@ -71,12 +144,11 @@ input[type="text"],
 select {
   width: 100%;
   max-width: 100%;
-  padding: 0.4rem 0.5rem;
-  margin-top: 0.25rem;
-  margin-bottom: 0.6rem;
-  border-radius: 4px;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
   border: 1px solid var(--border-color);
   font-size: 0.9rem;
+  background-color: #ffffff;
 }
 
 input[type="text"]:focus,
@@ -91,23 +163,26 @@ select:focus {
 .primary-btn,
 .secondary-btn {
   border-radius: 999px;
-  padding: 0.4rem 0.9rem;
+  padding: 0.42rem 0.9rem;
   font-size: 0.9rem;
   border: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
 }
 
 .primary-btn {
   background-color: var(--accent-color);
   color: #ffffff;
+  box-shadow: 0 3px 10px rgba(41, 121, 255, 0.35);
 }
 
 .primary-btn:disabled {
   background-color: #90caf9;
   cursor: default;
+  box-shadow: none;
 }
 
 .secondary-btn {
@@ -118,6 +193,10 @@ select:focus {
 .secondary-btn:disabled {
   background-color: #eeeeee;
   cursor: default;
+}
+
+.wide-btn {
+  width: 100%;
 }
 
 /* ファイル入力ラベル */
@@ -132,7 +211,6 @@ select:focus {
   color: var(--text-color);
   cursor: pointer;
   font-size: 0.9rem;
-  margin-bottom: 0.5rem;
 }
 
 .file-input-label input[type="file"] {
@@ -144,11 +222,12 @@ select:focus {
 .hint {
   font-size: 0.8rem;
   color: #666666;
+  margin: 0.15rem 0 0;
 }
 
 .status-message {
   font-size: 0.85rem;
-  margin-top: 0.4rem;
+  margin-top: 0.35rem;
   min-height: 1.2em;
 }
 
@@ -160,24 +239,68 @@ select:focus {
   color: var(--success-color);
 }
 
-/* 単語帳一覧 */
+/* 単語帳一覧テーブル */
 
-#deck-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+.deck-table-wrapper {
+  margin-top: 0.2rem;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  background-color: #ffffff;
 }
 
-.deck-pill {
-  padding: 0.3rem 0.7rem;
-  border-radius: 999px;
-  background-color: #eeeeee;
-  cursor: pointer;
+.deck-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.deck-table thead {
+  background: linear-gradient(135deg, #f7f9ff, #f1f4ff);
+}
+
+.deck-table th,
+.deck-table td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.deck-table th {
+  font-weight: 600;
+  color: #555555;
   font-size: 0.85rem;
 }
 
-.deck-pill:hover {
-  background-color: #e0e0e0;
+.deck-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.deck-table tbody tr:nth-child(odd) {
+  background-color: #fafafa;
+}
+
+.deck-table tbody tr:hover {
+  background-color: #eef4ff;
+}
+
+.col-name {
+  text-align: left;
+}
+
+.col-count {
+  width: 4.5rem;
+  text-align: center;
+}
+
+.col-action {
+  width: 5.5rem;
+  text-align: center;
+}
+
+/* デッキ名セルを少し強調 */
+
+.deck-name-cell {
+  font-weight: 500;
 }
 
 /* フッター */
@@ -191,8 +314,8 @@ select:focus {
 
 /* ======================
    モーダル共通
-   - スマホ: 下からスライド (open/close 両方)
-   - PC: フェード (open/close 両方)
+   - スマホ: 下からスライド
+   - PC: フェード + 背景ぼかし
    ====================== */
 
 .modal-backdrop {
@@ -202,36 +325,42 @@ select:focus {
   align-items: flex-end; /* デフォルト: ボトムシート */
   justify-content: center;
   z-index: 100;
-  background-color: rgba(0, 0, 0, 0); /* フェード用: 初期は透明 */
+  background-color: rgba(0, 0, 0, 0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
 }
 
 .modal-backdrop.hidden {
   display: none;
 }
 
-/* JS で .is-open を付けたときだけ表示＋アニメ開始 */
+/* JS で .is-open を付けたときだけ表示 */
 
 .modal-backdrop.is-open {
   display: flex;
 }
 
-/* バックドロップのフェード（PC向け）。スマホでも「暗くなる」感が出る */
+/* バックドロップのフェード + ぼかし（PC中心だが共通で適用） */
 
 @keyframes backdrop-fade-in {
   from {
     background-color: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0px);
   }
   to {
     background-color: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(6px);
   }
 }
 
 @keyframes backdrop-fade-out {
   from {
     background-color: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(6px);
   }
   to {
     background-color: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0px);
   }
 }
 
@@ -241,12 +370,13 @@ select:focus {
   background-color: var(--card-bg);
   width: 100%;
   max-width: 640px;
-  border-radius: 12px 12px 0 0;
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.25);
-  max-height: 92vh; /* 占有率を少し高める */
+  border-radius: 14px 14px 0 0;
+  box-shadow:
+    0 -2px 8px rgba(0, 0, 0, 0.18),
+    0 -12px 32px rgba(0, 0, 0, 0.25);
+  max-height: 92vh;
   display: flex;
   flex-direction: column;
-  /* アニメーションの初期状態は JS 側でクラス管理 */
 }
 
 /* PC では中央寄せポップアップに */
@@ -257,7 +387,7 @@ select:focus {
   }
 
   .modal-panel {
-    border-radius: 12px;
+    border-radius: 18px;
     max-height: 80vh;
   }
 }
@@ -268,13 +398,13 @@ select:focus {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
+  padding: 0.8rem 1rem;
   border-bottom: 1px solid var(--border-color);
 }
 
 .modal-header h2 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
 }
 
 .modal-close-btn {
@@ -293,7 +423,7 @@ select:focus {
   overflow-y: auto;
 }
 
-/* ===== スマホ向け: 下からスライドアニメーション ===== */
+/* ===== スマホ向け: 下からスライド ===== */
 
 @keyframes panel-slide-in-up {
   from {
@@ -341,13 +471,11 @@ select:focus {
   }
 }
 
-/* 開くとき */
+/* バックドロップの状態 */
 
 .modal-backdrop.is-opening {
-  animation: backdrop-fade-in 0.22s ease-out forwards;
+  animation: backdrop-fade-in 0.24s ease-out forwards;
 }
-
-/* 閉じるとき */
 
 .modal-backdrop.is-closing {
   animation: backdrop-fade-out 0.18s ease-in forwards;
@@ -391,10 +519,25 @@ select:focus {
 
 /* ===== 学習モーダル内 ===== */
 
+.section-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.98rem;
+}
+
+.section-title-with-note {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.section-note {
+  font-size: 0.78rem;
+  color: #777777;
+}
+
 #study-setup h3,
 #study-session h3 {
-  margin-top: 0;
-  font-size: 1rem;
+  font-weight: 600;
 }
 
 /* 設定テーブル */
@@ -404,20 +547,37 @@ select:focus {
   border-collapse: collapse;
   font-size: 0.9rem;
   margin-bottom: 0.75rem;
+  background-color: #fafafa;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.config-table tbody tr:nth-child(odd) {
+  background-color: #f3f3f3;
 }
 
 .config-table th,
 .config-table td {
-  padding: 0.4rem 0.3rem;
-  border-bottom: 1px solid var(--border-color);
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid #e0e0e0;
   vertical-align: middle;
+}
+
+.config-table tbody tr:last-child th,
+.config-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .config-table th {
   width: 5.5rem;
   font-weight: 600;
-  text-align: left;
+  text-align: right;
   color: #555555;
+  padding-right: 0.75rem;
+}
+
+.config-table td {
+  text-align: left;
 }
 
 /* 設定アクション */
@@ -425,29 +585,99 @@ select:focus {
 .setup-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
 }
 
-/* 学習エリア共通 */
+/* セッションヘッダ */
+
+.session-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.session-progress {
+  font-size: 0.8rem;
+  color: #555555;
+}
+
+/* 学習エリア */
+
+.study-area {
+  border-radius: 10px;
+  background-color: #fafafa;
+  padding: 0.7rem 0.7rem 0.6rem;
+}
 
 .study-mode {
-  margin-top: 0.5rem;
+  margin-top: 0.2rem;
+}
+
+.question-box {
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  padding: 0.5rem 0.6rem;
+  background-color: #ffffff;
+}
+
+.question-label {
+  font-size: 0.78rem;
+  color: #777777;
+  margin-bottom: 0.15rem;
 }
 
 .question-text {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin: 0;
+}
+
+.answer-box {
+  margin-top: 0.55rem;
+}
+
+.answer-label {
+  font-size: 0.8rem;
+  color: #555555;
+  margin-bottom: 0.2rem;
+  display: block;
 }
 
 .answer-text {
   font-size: 1rem;
-  margin: 0.5rem 0;
+  margin: 0.35rem 0 0;
+}
+
+.study-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.view-choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.6rem 0;
+}
+
+.answer-reveal {
+  margin-top: 0.6rem;
+}
+
+.self-check-label {
+  font-size: 0.8rem;
+  color: #666666;
+  margin: 0.5rem 0 0.2rem;
 }
 
 .result-text {
   min-height: 1.4em;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  margin: 0.35rem 0 0;
 }
 
 .result-text.correct {
@@ -458,19 +688,8 @@ select:focus {
   color: var(--error-color);
 }
 
-.view-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0.5rem 0;
-}
-
-.study-nav {
-  margin-top: 0.6rem;
-}
-
-.session-actions {
-  margin-top: 0.75rem;
+.session-footer {
+  margin-top: 0.7rem;
   display: flex;
   justify-content: flex-end;
 }
@@ -483,41 +702,78 @@ select:focus {
 
 /* ===== 制作モーダル内 ===== */
 
-.table-wrapper {
-  overflow-x: auto;
-  margin: 0.5rem 0;
+.field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.6rem;
 }
 
-#editor-table {
+.field-label {
+  font-size: 0.82rem;
+  color: #555555;
+}
+
+/* 制作テーブル */
+
+.table-wrapper {
+  overflow-x: auto;
+  margin: 0.4rem 0 0.6rem;
+}
+
+.editor-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
 }
 
-#editor-table th,
-#editor-table td {
-  border: 1px solid var(--border-color);
-  padding: 0.4rem;
-  text-align: left;
+.editor-table thead {
+  background: linear-gradient(135deg, #f7f9ff, #f1f4ff);
 }
 
-#editor-table th {
-  background-color: #fafafa;
+.editor-table th,
+.editor-table td {
+  border: 1px solid var(--border-color);
+  padding: 0.4rem 0.45rem;
+}
+
+.editor-table th {
+  font-size: 0.83rem;
+  color: #555555;
+}
+
+.col-term,
+.col-meaning {
+  width: 40%;
+}
+
+.col-row-action {
+  width: 6rem;
+}
+
+.center-cell {
+  text-align: center;
 }
 
 .editor-row-input {
   width: 100%;
   padding: 0.3rem 0.4rem;
-  border-radius: 4px;
+  border-radius: 6px;
   border: 1px solid var(--border-color);
   font-size: 0.9rem;
 }
 
+/* 行操作 */
+
 .editor-controls {
-  margin: 0.5rem 0;
+  margin: 0.4rem 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.editor-controls-bottom {
+  justify-content: flex-end;
 }
 
 .delete-row-btn {
@@ -525,7 +781,7 @@ select:focus {
   color: #ffffff;
   border-radius: 999px;
   border: none;
-  padding: 0.3rem 0.7rem;
+  padding: 0.25rem 0.7rem;
   cursor: pointer;
   font-size: 0.8rem;
 }
@@ -538,14 +794,32 @@ select:focus {
 
 @media (max-width: 600px) {
   .app-main {
-    padding: 0.75rem;
+    padding: 0.9rem 0.7rem 1.5rem;
   }
 
   .card {
-    padding: 0.9rem;
+    padding: 0.9rem 0.9rem;
+  }
+
+  .card-home-split {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card-home-split-right {
+    flex: 1 1 auto;
+  }
+
+  .home-row {
+    align-items: stretch;
   }
 
   .modal-panel {
-    max-height: 94vh; /* さらに少し上まで使う */
+    max-height: 94vh;
+  }
+
+  .deck-table th,
+  .deck-table td {
+    padding: 0.4rem 0.45rem;
   }
 }

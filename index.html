@@ -15,29 +15,63 @@
   <main class="app-main">
     <!-- ホーム -->
     <section id="home-view" class="home-view">
-      <div class="card">
+      <div class="card card-home">
         <h2>CSVインポート</h2>
-        <p>CSV形式（例: A,b のような2列）のファイルから単語帳を読み込みます。</p>
-        <label class="file-input-label">
-          ファイルを選択
-          <input type="file" id="csv-input" accept=".csv,text/csv">
-        </label>
-        <input type="text" id="csv-deck-name" placeholder="単語帳名（例: 英単語 基礎）">
-        <button id="import-csv-btn" class="primary-btn">インポートして保存</button>
+        <p class="card-desc">
+          CSV形式（例: <code>A,b</code> のような2列）のファイルから単語帳を読み込みます。
+        </p>
+        <div class="home-row">
+          <label class="file-input-label">
+            ファイルを選択
+            <input type="file" id="csv-input" accept=".csv,text/csv">
+          </label>
+          <input
+            type="text"
+            id="csv-deck-name"
+            class="input-inline"
+            placeholder="単語帳名（例: 英単語 基礎）"
+          >
+        </div>
+        <div class="home-row home-row-actions">
+          <button id="import-csv-btn" class="primary-btn">インポートして保存</button>
+        </div>
         <p class="hint">※ブラウザのローカルストレージに保存されます。</p>
         <p id="import-status" class="status-message"></p>
       </div>
 
-      <div class="card">
-        <h2>単語帳一覧</h2>
-        <div id="deck-list"></div>
-        <p class="hint">単語帳をクリックすると学習設定画面が開きます。</p>
+      <div class="card card-home">
+        <div class="card-header-row">
+          <h2>単語帳一覧</h2>
+          <span class="badge" id="deck-count-badge">0件</span>
+        </div>
+        <p class="card-desc">学習したい単語帳を選択してください。</p>
+        <div class="deck-table-wrapper">
+          <table class="deck-table">
+            <thead>
+              <tr>
+                <th class="col-name">名前</th>
+                <th class="col-count">語数</th>
+                <th class="col-action">学習</th>
+              </tr>
+            </thead>
+            <tbody id="deck-list">
+              <!-- JSで行を追加 -->
+            </tbody>
+          </table>
+        </div>
+        <p class="hint">行の「学習」ボタンを押すと学習設定画面が開きます。</p>
       </div>
 
-      <div class="card">
-        <h2>単語帳を新規作成</h2>
-        <p>行ごとに単語と意味を入力して、新しい単語帳を作成します。</p>
-        <button id="open-editor-btn" class="secondary-btn">制作を開く</button>
+      <div class="card card-home card-home-split">
+        <div class="card-home-split-left">
+          <h2>単語帳を新規作成</h2>
+          <p class="card-desc">
+            行ごとに単語と意味を入力して、新しい単語帳を作成します。
+          </p>
+        </div>
+        <div class="card-home-split-right">
+          <button id="open-editor-btn" class="primary-btn wide-btn">制作を開く</button>
+        </div>
       </div>
     </section>
   </main>
@@ -57,82 +91,99 @@
       <div class="modal-body">
         <!-- 設定エリア -->
         <section id="study-setup">
-          <h3>学習設定</h3>
+          <h3 class="section-title">学習設定</h3>
 
           <table class="config-table">
-            <tr>
-              <th>単語帳</th>
-              <td>
-                <select id="study-deck-select"></select>
-              </td>
-            </tr>
-            <tr>
-              <th>出題方向</th>
-              <td>
-                <select id="direction-select">
-                  <option value="forward">順方向（左 → 右）</option>
-                  <option value="reverse">逆方向（右 → 左）</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <th>学習スタイル</th>
-              <td>
-                <select id="mode-select">
-                  <option value="input">記述</option>
-                  <option value="view">閲覧</option>
-                </select>
-              </td>
-            </tr>
+            <tbody>
+              <tr>
+                <th>単語帳</th>
+                <td>
+                  <select id="study-deck-select"></select>
+                </td>
+              </tr>
+              <tr>
+                <th>出題方向</th>
+                <td>
+                  <select id="direction-select">
+                    <option value="forward">順方向（左 → 右）</option>
+                    <option value="reverse">逆方向（右 → 左）</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <th>学習スタイル</th>
+                <td>
+                  <select id="mode-select">
+                    <option value="input">記述（入力して答える）</option>
+                    <option value="view">閲覧（わかる / わからない）</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
           </table>
 
           <div class="setup-actions">
-            <button id="study-start-btn" class="primary-btn">この設定で開始</button>
+            <button id="study-start-btn" class="primary-btn wide-btn">この設定で開始</button>
           </div>
           <p id="study-setup-status" class="status-message"></p>
         </section>
 
         <!-- 学習エリア -->
         <section id="study-session" class="hidden">
-          <h3>学習中</h3>
+          <div class="session-header">
+            <h3 class="section-title">学習中</h3>
+            <span id="study-progress" class="session-progress"></span>
+          </div>
 
-          <div id="study-area">
+          <div id="study-area" class="study-area">
             <!-- 記述モード -->
             <div id="input-mode" class="study-mode">
-              <p id="input-question" class="question-text"></p>
-              <input type="text" id="input-answer" placeholder="ここに解答を入力">
-              <button id="input-submit-btn" class="primary-btn">答え合わせ</button>
-              <p id="input-result" class="result-text"></p>
-              <div class="study-nav">
+              <div class="question-box">
+                <div class="question-label">問題</div>
+                <p id="input-question" class="question-text"></p>
+              </div>
+              <div class="answer-box">
+                <label class="answer-label" for="input-answer">解答</label>
+                <input type="text" id="input-answer" placeholder="ここに解答を入力">
+              </div>
+              <div class="study-controls-row">
+                <button id="input-submit-btn" class="primary-btn">答え合わせ</button>
                 <button id="input-next-btn" class="secondary-btn">次の問題へ</button>
               </div>
+              <p id="input-result" class="result-text"></p>
             </div>
 
             <!-- 閲覧モード -->
             <div id="view-mode" class="study-mode">
-              <p id="view-question" class="question-text"></p>
-              <div class="view-buttons">
+              <div class="question-box">
+                <div class="question-label">問題</div>
+                <p id="view-question" class="question-text"></p>
+              </div>
+
+              <div class="view-choice-row">
                 <button id="view-know-btn" class="primary-btn">わかる</button>
                 <button id="view-dont-know-btn" class="secondary-btn">わからない</button>
               </div>
-              <div id="view-answer-area" class="hidden">
-                <p id="view-answer" class="answer-text"></p>
-                <p>自分の答えは:</p>
-                <div class="view-buttons">
+
+              <div id="view-answer-area" class="answer-reveal hidden">
+                <div class="answer-box">
+                  <div class="answer-label">正解</div>
+                  <p id="view-answer" class="answer-text"></p>
+                </div>
+                <p class="self-check-label">自分の答えは…</p>
+                <div class="view-choice-row">
                   <button id="view-correct-btn" class="primary-btn">合っていた</button>
                   <button id="view-wrong-btn" class="secondary-btn">合っていない</button>
                 </div>
                 <p id="view-result" class="result-text"></p>
-                <div class="study-nav">
+                <div class="study-controls-row">
                   <button id="view-next-btn" class="secondary-btn">次の問題へ</button>
                 </div>
               </div>
             </div>
           </div>
 
-          <p id="study-progress" class="status-message"></p>
-
-          <div class="session-actions">
+          <div class="session-footer">
             <button id="study-back-to-setup-btn" class="secondary-btn">設定に戻る</button>
           </div>
         </section>
@@ -150,18 +201,24 @@
 
       <div class="modal-body">
         <section id="editor-view">
-          <label>
-            単語帳名:
+          <h3 class="section-title">基本情報</h3>
+          <label class="field-block">
+            <span class="field-label">単語帳名</span>
             <input type="text" id="editor-deck-name" placeholder="例: 英単語 中級">
           </label>
 
+          <h3 class="section-title section-title-with-note">
+            単語リスト
+            <span class="section-note">左: 出題側 / 右: 解答側</span>
+          </h3>
+
           <div class="table-wrapper">
-            <table id="editor-table">
+            <table id="editor-table" class="editor-table">
               <thead>
                 <tr>
-                  <th>左列（例: 単語）</th>
-                  <th>右列（例: 意味）</th>
-                  <th>操作</th>
+                  <th class="col-term center-cell">左列（例: 単語）</th>
+                  <th class="col-meaning center-cell">右列（例: 意味）</th>
+                  <th class="col-row-action center-cell">操作</th>
                 </tr>
               </thead>
               <tbody id="editor-tbody">
@@ -174,7 +231,7 @@
             <button id="add-row-btn" class="secondary-btn">行を追加</button>
           </div>
 
-          <div class="editor-controls">
+          <div class="editor-controls editor-controls-bottom">
             <button id="save-deck-btn" class="primary-btn">単語帳を保存</button>
             <button id="download-csv-btn" class="secondary-btn">CSVをダウンロード</button>
           </div>

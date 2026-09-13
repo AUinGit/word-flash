@@ -80,7 +80,7 @@
     <small>&copy; 単語帳アプリ</small>
   </footer>
 
-  <!-- 学習モーダル（ステージ選択 → 開始） -->
+  <!-- 学習モーダル（ステージ選択 → 学習 → 結果） -->
   <div id="study-modal" class="modal-backdrop hidden">
     <div class="modal-panel modal-panel-bottom">
       <header class="modal-header">
@@ -185,6 +185,49 @@
 
           <div class="session-footer">
             <button id="study-back-to-setup-btn" class="secondary-btn">設定に戻る</button>
+          </div>
+        </section>
+
+        <!-- 結果エリア -->
+        <section id="study-result" class="hidden">
+          <h3 class="section-title">結果</h3>
+
+          <div class="result-summary-card">
+            <div class="result-summary-row">
+              <div class="result-summary-label">学習時間</div>
+              <div class="result-summary-value" id="result-time">--:--</div>
+            </div>
+            <div class="result-summary-row">
+              <div class="result-summary-label">問題数</div>
+              <div class="result-summary-value" id="result-total">0 問</div>
+            </div>
+          </div>
+
+          <div class="result-stats-grid">
+            <div class="result-stat-box">
+              <div class="result-stat-label">正解</div>
+              <div class="result-stat-main">
+                <span id="result-correct-count" class="result-stat-number">0</span>
+                <span id="result-correct-rate" class="result-stat-rate">0%</span>
+              </div>
+            </div>
+            <div class="result-stat-box">
+              <div class="result-stat-label">誤答</div>
+              <div class="result-stat-main">
+                <span id="result-wrong-count" class="result-stat-number">0</span>
+                <span id="result-wrong-rate" class="result-stat-rate">0%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-actions">
+            <button id="result-retry-wrong-btn" class="primary-btn">誤答のみやり直し</button>
+            <button id="result-retry-all-btn" class="secondary-btn">全てやり直し</button>
+          </div>
+
+          <div class="result-footer-actions">
+            <button id="result-back-to-setup-btn" class="secondary-btn">設定に戻る</button>
+            <button id="result-close-btn" class="secondary-btn">閉じる</button>
           </div>
         </section>
       </div>

@@ -15,22 +15,22 @@ let currentMode = "input";        // "input" | "view"
 let isStudyStarted = false;
 
 // ラウンド管理（1周分）
-let sessionIndices = [];   // 今ラウンドで出題するインデックス列（元デッキの index）
-let sessionPosition = 0;   // sessionIndices 内での現在の位置
-let currentStudyIndex = 0; // 実際に参照するデッキ index
+let sessionIndices = [];   // 今のラウンドで出題する index 列（元デッキの index）
+let sessionPosition = 0;   // sessionIndices 内での現在位置
+let currentStudyIndex = 0; // 実際に参照しているデッキ index
 
 // 結果集計
-let studyStartTime = null; // ラウンド開始時刻 (ms)
+let studyStartTime = null; // ms
 let correctCount = 0;
 let wrongCount = 0;
 let answeredCount = 0;
-let wrongIndices = [];     // このラウンドで誤答した問題の index 一覧（元デッキ）
+let wrongIndices = [];     // このラウンドで誤答した index 一覧（元デッキ）
 
-// 直近回答の結果（次に進むときに集計する）
+// 直近の回答結果
 let lastResultType = null; // "correct" | "wrong" | null
 
-// 自動で次の問題に進むためのタイマーID
-let autoNextTimerId = null;
+// 自動で次へ進むためのタイマーID
+let nextTimerId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   loadDecksFromStorage();
@@ -175,13 +175,14 @@ function openModal(id) {
     panel.classList.remove("is-closing");
   }
 
-  // 背景クリックで閉じる（パネル内クリックは無視）
-  modal.onclick = null;
-  modal.addEventListener("click", (event) => {
+  const backdropClickHandler = (event) => {
     if (event.target === modal) {
       closeModal(id);
     }
-  });
+  };
+  // 簡易的に onclick をリセットしてから追加（多重登録防止）
+  modal.onclick = null;
+  modal.addEventListener("click", backdropClickHandler, { once: false });
 }
 
 function closeModal(id) {
@@ -249,7 +250,6 @@ function initStudy() {
   const deckSelect = document.getElementById("study-deck-select");
   const directionSelect = document.getElementById("direction-select");
   const modeSelect = document.getElementById("mode-select");
-  const inputAnswerEl = document.getElementById("input-answer");
 
   deckSelect.addEventListener("change", () => {
     const deckId = deckSelect.value;
@@ -265,7 +265,7 @@ function initStudy() {
     updateStudyModeUI();
   });
 
-  // 「この設定で開始」＝フルセットで新規ラウンド開始
+  // この設定で開始（フルセット）
   document.getElementById("study-start-btn").addEventListener("click", () => {
     const statusEl = document.getElementById("study-setup-status");
     statusEl.textContent = "";
@@ -282,79 +282,84 @@ function initStudy() {
 
   // 設定に戻る
   document.getElementById("study-back-to-setup-btn").addEventListener("click", () => {
+    cancelNextTimer();
     isStudyStarted = false;
     showStudySetup();
   });
 
-  // 閉じるボタン
+  // 閉じる
   document.getElementById("study-close-btn").addEventListener("click", () => {
+    cancelNextTimer();
+    closeModal("study-modal");
     isStudyStarted = false;
     showStudySetup();
-    closeModal("study-modal");
   });
 
   // 結果画面のボタン
-  document.getElementById("result-retry-wrong").addEventListener("click", () => {
-    if (!currentStudyDeck || wrongIndices.length === 0) {
+  const retryWrongBtn = document.getElementById("result-retry-wrong");
+  const retryAllBtn = document.getElementById("result-retry-all");
+  const resultBackBtn = document.getElementById("result-back-to-setup");
+
+  if (retryWrongBtn) {
+    retryWrongBtn.addEventListener("click", () => {
+      cancelNextTimer();
+      if (!currentStudyDeck || wrongIndices.length === 0) {
+        startNewSessionAll();
+      } else {
+        startNewSessionWrongOnly();
+      }
+    });
+  }
+
+  if (retryAllBtn) {
+    retryAllBtn.addEventListener("click", () => {
+      cancelNextTimer();
       startNewSessionAll();
-    } else {
-      startNewSessionWrongOnly();
-    }
-  });
+    });
+  }
 
-  document.getElementById("result-retry-all").addEventListener("click", () => {
-    startNewSessionAll();
-  });
+  if (resultBackBtn) {
+    resultBackBtn.addEventListener("click", () => {
+      cancelNextTimer();
+      isStudyStarted = false;
+      showStudySetup();
+    });
+  }
 
-  document.getElementById("result-back-to-setup").addEventListener("click", () => {
-    isStudyStarted = false;
-    showStudySetup();
-  });
-
-  // 記述モード: ボタン + Enter キーで正誤判定 → 5秒後に次へ
+  // 記述モード: ボタン
   document.getElementById("input-submit-btn").addEventListener("click", () => {
-    handleInputSubmit();
-    scheduleAutoNext();
+    handleInputSubmitAndScheduleNext();
   });
 
-  // 日本語 IME 確定 Enter ではなく、「改行 Enter」で判定する
-  // keydown で composition 状態を考慮しつつ、Enter 押下のみ拾う
-  inputAnswerEl.addEventListener("keydown", (event) => {
-    if (event.isComposing) return;                   // IME変換中は無視
+  // 記述欄: Enter で答え合わせ（改行はさせない）
+  const inputAnswer = document.getElementById("input-answer");
+  inputAnswer.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
-      event.preventDefault();                        // 改行させない
-      handleInputSubmit();
-      scheduleAutoNext();
+      event.preventDefault();
+      handleInputSubmitAndScheduleNext();
     }
   });
 
-  // 閲覧モード: わかる / わからない → 5秒後に次へ
+  // 閲覧モード
   document.getElementById("view-know-btn").addEventListener("click", () => {
     lastResultType = "correct";
-    const resultEl = document.getElementById("view-result");
-    resultEl.textContent = "わかる → 正解として記録します。";
-    resultEl.className = "result-text correct";
     showViewAnswer();
-    scheduleAutoNext();
+    scheduleNextQuestion();
   });
-
   document.getElementById("view-dont-know-btn").addEventListener("click", () => {
     lastResultType = "wrong";
     const resultEl = document.getElementById("view-result");
     resultEl.textContent = "わからない → 誤りとして記録します。";
     resultEl.className = "result-text wrong";
     showViewAnswer();
-    scheduleAutoNext();
+    scheduleNextQuestion();
   });
-
-  // 自己採点用（ここでは次に進まず、5秒自動も発火しない）
   document.getElementById("view-correct-btn").addEventListener("click", () => {
     lastResultType = "correct";
     const resultEl = document.getElementById("view-result");
     resultEl.textContent = "正解として記録しました。";
     resultEl.className = "result-text correct";
   });
-
   document.getElementById("view-wrong-btn").addEventListener("click", () => {
     lastResultType = "wrong";
     const resultEl = document.getElementById("view-result");
@@ -408,9 +413,9 @@ function prepareNewRoundState() {
   wrongIndices = [];
   lastResultType = null;
 
+  cancelNextTimer();
   clearStudyMessages();
   hideStudyResult();
-  clearAutoNextTimer();
 }
 
 /* ---- 画面切り替え ---- */
@@ -451,11 +456,9 @@ function showStudySetup() {
   const session = document.getElementById("study-session");
   const resultSec = document.getElementById("study-result");
 
-  clearAutoNextTimer();
-
   setup.classList.remove("hidden");
   session.classList.add("hidden");
-  resultSec.classList.add("hidden");
+  if (resultSec) resultSec.classList.add("hidden");
 }
 
 function showStudySession() {
@@ -465,7 +468,7 @@ function showStudySession() {
 
   setup.classList.add("hidden");
   session.classList.remove("hidden");
-  resultSec.classList.add("hidden");
+  if (resultSec) resultSec.classList.add("hidden");
 }
 
 function showStudyResult() {
@@ -473,24 +476,37 @@ function showStudyResult() {
   const session = document.getElementById("study-session");
   const resultSec = document.getElementById("study-result");
 
-  clearAutoNextTimer();
-
-  setup.classList.add("hidden");
-  session.classList.add("hidden");
-  resultSec.classList.remove("hidden");
+  if (setup) setup.classList.add("hidden");
+  if (session) session.classList.add("hidden");
+  if (resultSec) resultSec.classList.remove("hidden");
 }
 
 function hideStudyResult() {
   const resultSec = document.getElementById("study-result");
-  resultSec.classList.add("hidden");
+  if (resultSec) resultSec.classList.add("hidden");
 }
+/* ======================
+ * ラウンド進行・結果表示
+ * ====================== */
 
-/* ---- ラウンド進行・UI更新 ---- */
+function resetStudyIndex() {
+  sessionPosition = 0;
+  if (sessionIndices.length > 0) {
+    currentStudyIndex = sessionIndices[0];
+  } else if (currentStudyDeck) {
+    currentStudyIndex = 0;
+  }
+  clearStudyMessages();
+  loadCurrentQuestion();
+  updateStudyProgress();
+}
 
 function clearStudyMessages() {
   const inputResult = document.getElementById("input-result");
-  inputResult.textContent = "";
-  inputResult.className = "result-text";
+  if (inputResult) {
+    inputResult.textContent = "";
+    inputResult.className = "result-text";
+  }
   const ansInput = document.getElementById("input-answer");
   if (ansInput) ansInput.value = "";
 
@@ -552,21 +568,17 @@ function loadCurrentQuestion() {
   viewQuestionEl.textContent = question;
 }
 
-function updateStudyProgress() {
-  const progressEl = document.getElementById("study-progress");
-  if (!currentStudyDeck || !isStudyStarted || sessionIndices.length === 0) {
-    progressEl.textContent = "";
-    return;
-  }
-  progressEl.textContent = `問題 ${sessionPosition + 1} / ${sessionIndices.length}`;
-}
+/* ---- 記述モード: 判定＋自動で次へ ---- */
 
-/* ---- 記述モード ---- */
-
-function handleInputSubmit() {
+function handleInputSubmitAndScheduleNext() {
   if (!isStudyStarted) return;
   if (!currentStudyDeck || currentStudyDeck.items.length === 0) return;
 
+  handleInputSubmit();
+  scheduleNextQuestion();
+}
+
+function handleInputSubmit() {
   const userInput = document.getElementById("input-answer").value.trim();
   const resultEl = document.getElementById("input-result");
 
@@ -586,7 +598,7 @@ function handleInputSubmit() {
   }
 }
 
-/* ---- 閲覧モード（解答表示） ---- */
+/* ---- 閲覧モード: 解答表示 ---- */
 
 function showViewAnswer() {
   if (!isStudyStarted) return;
@@ -604,62 +616,62 @@ function showViewAnswer() {
 
 /* ---- 次の問題へ（5秒後自動） ---- */
 
-function scheduleAutoNext() {
-  clearAutoNextTimer();
-  // 約5秒後に次の問題へ
-  autoNextTimerId = setTimeout(() => {
-    proceedToNextQuestion();
+function scheduleNextQuestion() {
+  cancelNextTimer();
+  nextTimerId = setTimeout(() => {
+    nextQuestion();
   }, 5000);
 }
 
-function clearAutoNextTimer() {
-  if (autoNextTimerId != null) {
-    clearTimeout(autoNextTimerId);
-    autoNextTimerId = null;
+function cancelNextTimer() {
+  if (nextTimerId != null) {
+    clearTimeout(nextTimerId);
+    nextTimerId = null;
   }
 }
 
-function proceedToNextQuestion() {
+function nextQuestion() {
   if (!isStudyStarted) return;
   if (!currentStudyDeck || currentStudyDeck.items.length === 0) return;
 
-  // 直近の回答結果を集計
-  if (lastResultType) {
+  // 直前の問題の結果を集計
+  if (lastResultType === "correct") {
+    correctCount++;
     answeredCount++;
-    if (lastResultType === "correct") {
-      correctCount++;
-    } else if (lastResultType === "wrong") {
-      wrongCount++;
-      if (!wrongIndices.includes(currentStudyIndex)) {
-        wrongIndices.push(currentStudyIndex);
-      }
+  } else if (lastResultType === "wrong") {
+    wrongCount++;
+    answeredCount++;
+    if (!wrongIndices.includes(currentStudyIndex)) {
+      wrongIndices.push(currentStudyIndex);
     }
-    lastResultType = null;
   }
+  lastResultType = null;
 
-  // ラウンド終了判定
-  if (sessionPosition >= sessionIndices.length - 1) {
+  // 次の問題へ進む or 結果表示
+  sessionPosition++;
+  if (sessionPosition >= sessionIndices.length) {
     finishSession();
     return;
   }
 
-  // 次の問題へ
-  sessionPosition++;
   clearStudyMessages();
   loadCurrentQuestion();
   updateStudyProgress();
 }
 
-/* ---- ラウンド終了 → 結果画面 ---- */
+/* ---- 終了 → 結果表示 ---- */
 
 function finishSession() {
   isStudyStarted = false;
+  cancelNextTimer();
+
   const endTime = Date.now();
   const elapsedMs = studyStartTime ? endTime - studyStartTime : 0;
 
-  const total = sessionIndices.length || 0;
-  const timeSec = Math.round(elapsedMs / 100) / 10; // 小数1桁
-  const rate = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+  const total = sessionIndices.length;
+  const correct = correctCount;
+  const wrong = wrongCount;
+  const rate = total > 0 ? Math.round((correct / total) * 100) : 0;
 
   const timeEl = document.getElementById("result-time");
   const totalEl = document.getElementById("result-total");
@@ -667,13 +679,40 @@ function finishSession() {
   const wrongEl = document.getElementById("result-wrong");
   const rateEl = document.getElementById("result-rate");
 
-  timeEl.textContent = `${timeSec.toFixed(1)}秒`;
-  totalEl.textContent = String(total);
-  correctEl.textContent = String(correctCount);
-  wrongEl.textContent = String(wrongCount);
-  rateEl.textContent = `${rate}%`;
+  if (timeEl) timeEl.textContent = formatElapsedTime(elapsedMs);
+  if (totalEl) totalEl.textContent = String(total);
+  if (correctEl) correctEl.textContent = String(correct);
+  if (wrongEl) wrongEl.textContent = String(wrong);
+  if (rateEl) rateEl.textContent = `${rate}%`;
 
   showStudyResult();
+}
+
+/* ---- 進捗表示 ---- */
+
+function updateStudyProgress() {
+  const progressEl = document.getElementById("study-progress");
+  if (!currentStudyDeck || currentStudyDeck.items.length === 0 || !isStudyStarted) {
+    if (progressEl) progressEl.textContent = "";
+    return;
+  }
+  const total = sessionIndices.length || currentStudyDeck.items.length;
+  if (progressEl) {
+    progressEl.textContent = `問題 ${sessionPosition + 1} / ${total}`;
+  }
+}
+
+/* ---- 経過時間フォーマット ---- */
+
+function formatElapsedTime(ms) {
+  if (!ms || ms < 0) return "-";
+  const totalSec = Math.floor(ms / 1000);
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  if (min === 0) {
+    return `${sec}秒`;
+  }
+  return `${min}分${sec}秒`;
 }
 
 /* ======================
@@ -876,4 +915,19 @@ function splitCsvLine(line) {
   return result;
 }
 
-function escapeCsvCell(cell
+function escapeCsvCell(cell) {
+  if (cell == null) return "";
+  const str = String(cell);
+  if (/[",\r\n]/.test(str)) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
+/* ======================
+ * 汎用ユーティリティ
+ * ====================== */
+
+function generateId() {
+  return "deck_" + Math.random().toString(36).slice(2) + "_" + Date.now().toString(36);
+}

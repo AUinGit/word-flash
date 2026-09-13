@@ -1,0 +1,160 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>単語帳アプリ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>単語帳アプリ</h1>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-view="home-view">ホーム</button>
+      <button class="nav-tab" data-view="study-view">単語帳</button>
+      <button class="nav-tab" data-view="editor-view">制作</button>
+    </nav>
+  </header>
+
+  <main class="app-main">
+    <!-- ホームビュー -->
+    <section id="home-view" class="view active">
+      <div class="card">
+        <h2>CSVインポート</h2>
+        <p>CSV形式（例: A,b のような2列）のファイルから単語帳を読み込みます。</p>
+        <label class="file-input-label">
+          ファイルを選択
+          <input type="file" id="csv-input" accept=".csv,text/csv">
+        </label>
+        <input type="text" id="csv-deck-name" placeholder="単語帳名（例: 英単語 基礎）">
+        <button id="import-csv-btn" class="primary-btn">インポートして保存</button>
+        <p class="hint">※ブラウザのローカルストレージに保存されます。</p>
+        <p id="import-status" class="status-message"></p>
+      </div>
+
+      <div class="card">
+        <h2>単語帳一覧</h2>
+        <div id="deck-list"></div>
+        <p class="hint">単語帳をクリックすると学習ページへ移動します。</p>
+      </div>
+
+      <div class="card">
+        <h2>単語帳を新規作成</h2>
+        <p>行ごとに単語と意味を入力して、新しい単語帳を作成します。</p>
+        <button id="go-editor-btn" class="secondary-btn">制作ページへ移動</button>
+      </div>
+    </section>
+
+    <!-- 学習ビュー -->
+    <section id="study-view" class="view">
+      <div class="card">
+        <h2>単語帳で学習</h2>
+        <div class="inline-controls">
+          <label>
+            単語帳:
+            <select id="study-deck-select"></select>
+          </label>
+        </div>
+
+        <div class="inline-controls">
+          <label>
+            出題方向:
+            <select id="direction-select">
+              <option value="forward">順方向（左 → 右）</option>
+              <option value="reverse">逆方向（右 → 左）</option>
+            </select>
+          </label>
+          <label>
+            学習スタイル:
+            <select id="mode-select">
+              <option value="input">記述</option>
+              <option value="view">閲覧</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="study-area">
+          <!-- 記述モード -->
+          <div id="input-mode" class="study-mode">
+            <p id="input-question" class="question-text"></p>
+            <input type="text" id="input-answer" placeholder="ここに解答を入力">
+            <button id="input-submit-btn" class="primary-btn">答え合わせ</button>
+            <p id="input-result" class="result-text"></p>
+            <div class="study-nav">
+              <button id="input-next-btn" class="secondary-btn">次の問題へ</button>
+            </div>
+          </div>
+
+          <!-- 閲覧モード -->
+          <div id="view-mode" class="study-mode">
+            <p id="view-question" class="question-text"></p>
+            <div class="view-buttons">
+              <button id="view-know-btn" class="primary-btn">わかる</button>
+              <button id="view-dont-know-btn" class="secondary-btn">わからない</button>
+            </div>
+            <div id="view-answer-area" class="hidden">
+              <p id="view-answer" class="answer-text"></p>
+              <p>自分の答えは:</p>
+              <div class="view-buttons">
+                <button id="view-correct-btn" class="primary-btn">合っていた</button>
+                <button id="view-wrong-btn" class="secondary-btn">合っていない</button>
+              </div>
+              <p id="view-result" class="result-text"></p>
+              <div class="study-nav">
+                <button id="view-next-btn" class="secondary-btn">次の問題へ</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p id="study-progress" class="status-message"></p>
+      </div>
+    </section>
+
+    <!-- 制作ビュー -->
+    <section id="editor-view" class="view">
+      <div class="card">
+        <h2>単語帳の制作</h2>
+        <label>
+          単語帳名:
+          <input type="text" id="editor-deck-name" placeholder="例: 英単語 中級">
+        </label>
+
+        <div class="table-wrapper">
+          <table id="editor-table">
+            <thead>
+              <tr>
+                <th>左列（例: 単語）</th>
+                <th>右列（例: 意味）</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="editor-tbody">
+              <!-- 行はJSで追加 -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="editor-controls">
+          <button id="add-row-btn" class="secondary-btn">行を追加</button>
+        </div>
+
+        <div class="editor-controls">
+          <button id="save-deck-btn" class="primary-btn">単語帳を保存</button>
+          <button id="download-csv-btn" class="secondary-btn">CSVをダウンロード</button>
+        </div>
+
+        <p class="hint">保存するとホームと学習ページの一覧に表示されます。</p>
+        <p id="editor-status" class="status-message"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <small>&copy; 単語帳アプリ</small>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

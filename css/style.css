@@ -323,8 +323,8 @@ select:focus {
   align-items: flex-end; /* デフォルト: ボトムシート */
   justify-content: center;
   z-index: 100;
-  background-color: rgba(0, 0, 0, 0); /* アニメの from 位置 */
-  backdrop-filter: blur(6px);          /* 常時ぼかしを有効化 */
+  background-color: rgba(0, 0, 0, 0);
+  backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
 
@@ -332,13 +332,9 @@ select:focus {
   display: none;
 }
 
-/* JS で .is-open を付けたときだけ表示 */
-
 .modal-backdrop.is-open {
   display: flex;
 }
-
-/* バックドロップのフェード（ぼかしは固定） */
 
 @keyframes backdrop-fade-in {
   from {
@@ -386,7 +382,7 @@ select:focus {
   }
 }
 
-/* ヘッダー */
+/* モーダルヘッダー */
 
 .modal-header {
   display: flex;
@@ -410,14 +406,14 @@ select:focus {
   color: #666666;
 }
 
-/* 本文 */
+/* モーダル本文 */
 
 .modal-body {
   padding: 0.75rem 1rem 1rem;
   overflow-y: auto;
 }
 
-/* ===== スマホ向け: 下からスライド ===== */
+/* アニメーション */
 
 @keyframes panel-slide-in-up {
   from {
@@ -441,8 +437,6 @@ select:focus {
   }
 }
 
-/* ===== PC向け: フェードイン / フェードアウト ===== */
-
 @keyframes panel-fade-in {
   from {
     transform: translateY(0);
@@ -465,8 +459,6 @@ select:focus {
   }
 }
 
-/* バックドロップの状態 */
-
 .modal-backdrop.is-opening {
   animation: backdrop-fade-in 0.24s ease-out forwards;
 }
@@ -475,7 +467,7 @@ select:focus {
   animation: backdrop-fade-out 0.18s ease-in forwards;
 }
 
-/* モバイルサイズ: スライドイン/アウト */
+/* モバイル: スライドイン/アウト */
 
 @media (max-width: 767px) {
   .modal-panel-bottom {
@@ -493,7 +485,7 @@ select:focus {
   }
 }
 
-/* PCサイズ: フェードイン/アウト */
+/* PC: フェードイン/アウト */
 
 @media (min-width: 768px) {
   .modal-panel-bottom {
@@ -511,7 +503,7 @@ select:focus {
   }
 }
 
-/* ===== 学習モーダル内: 設定・セッション ===== */
+/* ===== 学習モーダル内 ===== */
 
 .section-title {
   margin: 0 0 0.4rem;
@@ -527,12 +519,6 @@ select:focus {
 .section-note {
   font-size: 0.78rem;
   color: #777777;
-}
-
-#study-setup h3,
-#study-session h3,
-#study-result h3 {
-  font-weight: 600;
 }
 
 /* 設定テーブル */
@@ -689,81 +675,60 @@ select:focus {
   justify-content: flex-end;
 }
 
-/* ===== 結果エリア ===== */
+/* 結果画面 */
 
 #study-result {
-  margin-top: 0.2rem;
+  margin-top: 0.4rem;
 }
 
 .result-summary-card {
-  border-radius: 10px;
-  background-color: #fafafa;
-  padding: 0.6rem 0.7rem;
-  margin-bottom: 0.6rem;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  padding: 0.7rem 0.8rem 0.8rem;
+  margin-bottom: 0.7rem;
 }
 
-.result-summary-row {
+.result-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.5rem;
 }
 
-.result-summary-row:last-child {
-  margin-bottom: 0;
-}
-
-.result-summary-label {
-  font-size: 0.85rem;
+.result-label {
+  font-size: 0.88rem;
   color: #555555;
 }
 
-.result-summary-value {
+.result-value {
   font-size: 0.95rem;
   font-weight: 600;
 }
 
-/* 正解・誤答の統計 */
-
-.result-stats-grid {
+.result-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
-  margin-bottom: 0.8rem;
+  gap: 0.4rem 0.8rem;
 }
 
-.result-stat-box {
-  border-radius: 10px;
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  padding: 0.55rem 0.6rem;
+.result-item {
+  background-color: #fafafa;
+  border-radius: 8px;
+  padding: 0.4rem 0.55rem;
   text-align: center;
 }
 
-.result-stat-label {
+.result-item-label {
   font-size: 0.8rem;
-  color: #555555;
-  margin-bottom: 0.25rem;
+  color: #666666;
+  margin-bottom: 0.1rem;
 }
 
-.result-stat-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1rem;
+.result-item-value {
+  font-size: 1rem;
+  font-weight: 600;
 }
-
-.result-stat-number {
-  font-size: 1.2rem;
-  font-weight: 700;
-}
-
-.result-stat-rate {
-  font-size: 0.8rem;
-  color: #777777;
-}
-
-/* 結果アクション */
 
 .result-actions {
   display: flex;
@@ -772,10 +737,8 @@ select:focus {
   margin-bottom: 0.6rem;
 }
 
-.result-footer-actions {
+.result-footer {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
   justify-content: flex-end;
 }
 
@@ -798,8 +761,6 @@ select:focus {
   font-size: 0.82rem;
   color: #555555;
 }
-
-/* 制作テーブル */
 
 .table-wrapper {
   overflow-x: auto;
@@ -875,7 +836,7 @@ select:focus {
   background-color: #e53935;
 }
 
-/* ===== スマホ向け調整 ===== */
+/* スマホ向け調整 */
 
 @media (max-width: 600px) {
   .app-main {
@@ -908,7 +869,7 @@ select:focus {
     padding: 0.4rem 0.45rem;
   }
 
-  .result-stats-grid {
-    grid-template-columns: 1fr 1fr;
+  .result-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
